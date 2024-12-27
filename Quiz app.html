@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Quiz App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .quiz-container {
+            max-width: 800px;
+            width: 95%;
+            margin: 20px auto;
+            background-color: white;
+            padding: clamp(15px, 4vw, 30px);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        #quiz-progress {
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            margin-bottom: 25px;
+            color: #666;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .question {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .question.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .question h3 {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        label {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: clamp(10px, 3vw, 15px);
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+
+        label:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+            width: clamp(16px, 4vw, 20px);
+            height: clamp(16px, 4vw, 20px);
+        }
+
+        button {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+            padding: clamp(10px, 3vw, 15px);
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 20px;
+            padding: clamp(15px, 4vw, 25px);
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .result-container h2 {
+            font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        #detailed-results {
+            margin-top: 20px;
+        }
+
+        #detailed-results p {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 5px;
+            font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+        }
+
+        @media screen and (max-width: 480px) {
+            .quiz-container {
+                width: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+
+            label {
+                padding: 12px;
+            }
+
+            #detailed-results p {
+                padding: 8px;
+            }
+        }
+
+        @media screen and (min-width: 768px) {
+            .options-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .question.active {
+                animation: none;
+            }
+
+            label:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Computer Science Quiz</h1>
+
+        <div id="quiz-progress">
+            Question <span id="current-question">1</span> of 10
+        </div>
+
+        <div id="questions-container">
+            <!-- Questions will be dynamically inserted here -->
+        </div>
+
+        <div id="result-container" class="result-container">
+            <h2>Quiz Results</h2>
+            <p>Score: <span id="score"></span> out of 10</p>
+            <p>Percentage: <span id="percentage"></span>%</p>
+            <div id="detailed-results"></div>
+            <button onclick="restartQuiz()">Restart Quiz</button>
+            <button onclick="answers"><a href="Answers.html" rel="Answers">answers</a></button>
+
+            
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: "Who is known as the father of computers?", options: ["Alan Turing", "Charles Babbage", "John von Neumann", "Thomas Edison"], 
+            correct: "Charles Babbage" },
+            { question: "What does 'HTML' stand for?", options: ["HyperText Machine Language", "HyperText Markup Language", "HighText Markup Language", "HyperTransfer Markup Language"], 
+            correct: "HyperText Markup Language" },
+            { question: "What does 'CPU' stand for?", options: ["Central Printing Unit", "Control Processing Unit", "Central Processing Unit", "Computer Processing Unit"], 
+            correct: "Central Processing Unit" },
+            { question: "What is the name of the first computer programmer?", options: ["Ada Lovelace", "Grace Hopper", "Margaret Hamilton", "Tim Berners-Lee"],
+             correct: "Ada Lovelace" },
+            { question: "Which company created the iPhone?", options: ["Microsoft", "Google", "Apple", "Samsung"],
+             correct: "Apple" },
+            { question: "What is the primary function of RAM in a computer?", options: ["To store permanent data", "To execute arithmetic calculations", "To temporarily store data for quick access", "To process graphical data"],
+             correct: "To temporarily store data for quick access" },
+            { question: "Which programming language is known as the 'language of the web'?", options: ["Python", "C++", "JavaScript", "Java"], correct: "JavaScript" },
+            { question: "What does 'IoT' stand for?", options: ["Internet of Technology", "Integration of Things", "Internet of Things", "Information of Technology"],
+             correct: "Internet of Things" },
+            { question: "Who invented the World Wide Web?", options: ["Bill Gates", "Steve Jobs", "Tim Berners-Lee", "Larry Page"], 
+            correct: "Tim Berners-Lee" },
+            { question: "Which of the following is not an operating system?", options: ["Windows", "Linux", "Python", "macOS"],
+             correct: "Python" }
+        ];
+
+        let currentQuestion = 0;
+        const userAnswers = {};
+
+        function initializeQuiz() {
+            const container = document.getElementById('questions-container');
+            quizData.forEach((data, index) => {
+                const questionDiv = createQuestionElement(data, index);
+                container.appendChild(questionDiv);
+            });
+            showQuestion(0);
+        }
+
+        function createQuestionElement(questionData, index) {
+            const div = document.createElement('div');
+            div.className = 'question';
+            div.id = `question${index}`;
+
+            const questionText = document.createElement('h3');
+            questionText.textContent = `${index + 1}. ${questionData.question}`;
+            div.appendChild(questionText);
+
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'options-container';
+
+            questionData.options.forEach((option) => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = `question${index}`;
+                input.value = option;
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(` ${option}`));
+                optionsContainer.appendChild(label);
+            });
+
+            div.appendChild(optionsContainer);
+
+            const buttonContainer = document.createElement('div');
+            const button = document.createElement('button');
+            button.textContent = index === quizData.length - 1 ? 'Submit Quiz' : 'Next Question';
+            button.onclick = () => (index === quizData.length - 1 ? submitQuiz() : nextQuestion());
+            buttonContainer.appendChild(button);
+            div.appendChild(buttonContainer);
+
+            return div;
+        }
+
+        function showQuestion(index) {
+            document.querySelectorAll('.question').forEach((q) => q.classList.remove('active'));
+            document.getElementById(`question${index}`).classList.add('active');
+            document.getElementById('current-question').textContent = index + 1;
+        }
+
+        function nextQuestion() {
+            const currentQuestionElement = document.querySelector(`input[name="question${currentQuestion}"]:checked`);
+            if (!currentQuestionElement) {
+                alert('Please select an answer before proceeding.');
+                return;
+            }
+
+            userAnswers[currentQuestion] = currentQuestionElement.value;
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        }
+
+        function submitQuiz() {
+            const lastQuestionElement = document.querySelector(`input[name="question${currentQuestion}"]:checked`);
+            if (!lastQuestionElement) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            userAnswers[currentQuestion] = lastQuestionElement.value;
+
+            let score = 0;
+            const detailedResults = [];
+
+            quizData.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === question.correct;
+                if (isCorrect) score++;
+
+                detailedResults.push(`
+                    <p><strong>Question ${index + 1}:</strong> ${isCorrect ? '✓' : '✗'}<br>
+                    Your answer: ${userAnswer}<br>
+                    ${!isCorrect ? `Correct answer: ${question.correct}` : ''}</p>
+                `);
+            });
+
+            const percentage = (score / quizData.length) * 100;
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('percentage').textContent = percentage.toFixed(1);
+            document.getElementById('detailed-results').innerHTML = detailedResults.join('');
+
+            document.querySelectorAll('.question').forEach((q) => (q.style.display = 'none'));
+            document.getElementById('result-container').style.display = 'block';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            Object.keys(userAnswers).forEach((key) => delete userAnswers[key]);
+            document.getElementById('result-container').style.display = 'none';
+            document.querySelectorAll('.question').forEach((q) => (q.style.display = 'block'));
+            showQuestion(0);
+        }
+
+        // Initialize the quiz when the page loads
+        window.onload = initializeQuiz;
+        
+    </script>
+    
+</body>
+</html>
